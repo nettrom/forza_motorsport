@@ -30,50 +30,67 @@ from struct import unpack
 ## https://forums.forzamotorsport.net/turn10_postsm926839_Forza-Motorsport-7--Data-Out--feature-details.aspx#post_926839
 
 class ForzaDataPacket:
-    def __init__(self, data):
-        ## Format string that allows unpack to process the data bytestream:
-        forza_format = '<iIfffffffffffffffffffffffffffffffffffffffffffffffffffiiiii'
-        ## Names of the properties in the order they're featured in the packet:
-        self._props = [
-            'is_race_on', 'timestamp_ms',
-            'engine_max_rpm', 'engine_idle_rpm', 'current_engine_rpm',
-            'acceleration_x', 'acceleration_y', 'acceleration_z',
-            'velocity_x', 'velocity_y', 'velocity_z',
-            'angular_velocity_x', 'angular_velocity_y', 'angular_velocity_z',
-            'yaw', 'pitch', 'roll',
-            'norm_suspension_travel_FL', 'norm_suspension_travel_FR',
-            'norm_suspension_travel_RL', 'norm_suspension_travel_RR',
-            'tire_slip_ratio_FL', 'tire_slip_ratio_FR',
-            'tire_slip_ratio_RL', 'tire_slip_ratio_RR',
-            'wheel_rotation_speed_FL', 'wheel_rotation_speed_FR',
-            'wheel_rotation_speed_RL', 'wheel_rotation_speed_RR',
-            'wheel_on_rumble_strip_FL', 'wheel_on_rumble_strip_FR',
-            'wheel_on_rumble_strip_RL', 'wheel_on_rumble_strip_RR',
-            'wheel_in_puddle_FL', 'wheel_in_puddle_FR',
-            'wheel_in_puddle_RL', 'wheel_in_puddle_RR',
-            'surface_rumble_FL', 'surface_rumble_FR',
-            'surface_rumble_RL', 'surface_rumble_RR',
-            'tire_slip_angle_FL', 'tire_slip_angle_FR',
-            'tire_slip_angle_RL', 'tire_slip_angle_RR',
-            'tire_combined_slip_FL', 'tire_combined_slip_FR',
-            'tire_combined_slip_RL', 'tire_combined_slip_RR',
-            'suspension_travel_meters_FL', 'suspension_travel_meters_FR',
-            'suspension_travel_meters_RL', 'suspension_travel_meters_RR',
-            'car_ordinal', 'car_class', 'car_performance_index',
-            'drivetrain_type', 'num_cylinders'
-            ]
+    ## Class variables are the specification of the format and the names of all
+    ## the properties found in the data packet.
 
+    ## Format string that allows unpack to process the data bytestream:
+    forza_format = '<iIfffffffffffffffffffffffffffffffffffffffffffffffffffiiiii'
+
+    ## Names of the properties in the order they're featured in the packet:
+    props = [
+        'is_race_on', 'timestamp_ms',
+        'engine_max_rpm', 'engine_idle_rpm', 'current_engine_rpm',
+        'acceleration_x', 'acceleration_y', 'acceleration_z',
+        'velocity_x', 'velocity_y', 'velocity_z',
+        'angular_velocity_x', 'angular_velocity_y', 'angular_velocity_z',
+        'yaw', 'pitch', 'roll',
+        'norm_suspension_travel_FL', 'norm_suspension_travel_FR',
+        'norm_suspension_travel_RL', 'norm_suspension_travel_RR',
+        'tire_slip_ratio_FL', 'tire_slip_ratio_FR',
+        'tire_slip_ratio_RL', 'tire_slip_ratio_RR',
+        'wheel_rotation_speed_FL', 'wheel_rotation_speed_FR',
+        'wheel_rotation_speed_RL', 'wheel_rotation_speed_RR',
+        'wheel_on_rumble_strip_FL', 'wheel_on_rumble_strip_FR',
+        'wheel_on_rumble_strip_RL', 'wheel_on_rumble_strip_RR',
+        'wheel_in_puddle_FL', 'wheel_in_puddle_FR',
+        'wheel_in_puddle_RL', 'wheel_in_puddle_RR',
+        'surface_rumble_FL', 'surface_rumble_FR',
+        'surface_rumble_RL', 'surface_rumble_RR',
+        'tire_slip_angle_FL', 'tire_slip_angle_FR',
+        'tire_slip_angle_RL', 'tire_slip_angle_RR',
+        'tire_combined_slip_FL', 'tire_combined_slip_FR',
+        'tire_combined_slip_RL', 'tire_combined_slip_RR',
+        'suspension_travel_meters_FL', 'suspension_travel_meters_FR',
+        'suspension_travel_meters_RL', 'suspension_travel_meters_RR',
+        'car_ordinal', 'car_class', 'car_performance_index',
+        'drivetrain_type', 'num_cylinders'
+    ]
+    
+    def __init__(self, data):
         ## zip makes for convenient flexibility when mapping names to
         ## values in the data packet:
-        for prop_name, prop_value in zip(self._props,
-                                         unpack(forza_format, data)):
+        for prop_name, prop_value in zip(self.props,
+                                         unpack(self.forza_format, data)):
             setattr(self, prop_name, prop_value)
 
+    @classmethod
+    def get_props(cls):
+        '''
+        Return the list of properties in the data packet, in order.
+        '''
+        return(cls.props)
+
+    def to_list(self):
+        '''
+        Return the values of this data packet, in order.
+        '''
+        return([getattr(self, prop_name) for prop_name in self.props])
+            
     def get_tsv_header(self):
         '''
         Return a tab-separated string with the names of all properties in the order defined in the data packet.
         '''
-        return('\t'.join(self._props))
+        return('\t'.join(self.props))
         
     def to_tsv(self):
         '''

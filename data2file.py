@@ -25,12 +25,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
 
+import csv
 import logging
 import socket
 
 from fdp import ForzaDataPacket
 
-def dump_stream(port, output_filename):
+def to_str(value):
+    '''
+    Returns a string representation of the given value, if it's a floating
+    number, format it.
+
+    :param value: the value to format
+    '''
+    if type(value) == float:
+        return('{:f}'.format(value))
+    
+    return('{}'.format(value))
+
+def dump_stream(port, output_filename, format='tsv', append=False):
     '''
     Opens the given output filename, listens to UDP packets on the given port
     and writes data to the file.
@@ -40,9 +53,30 @@ def dump_stream(port, output_filename):
 
     :param output_filename: path to the TSV file we will write to
     :type output_filename: str
+
+    :param format: what format to write out, either 'tsv' or 'csv'
+    :type format: str
+
+    :param append: if set, the output file will be opened for appending and
+                   the header with column names is not written out
+    :type append: bool
     '''
 
-    with open(output_filename, 'a', buffering=1) as outfile:
+    open_mode = 'w'
+    if append:
+        open_mode = 'a'
+
+    with open(output_filename, open_mode, buffering=1) as outfile:
+        if format == 'csv':
+            csv_writer = csv.writer(outfile)
+            if not append:
+                csv_writer.writerow(ForzaDataPacket.get_props())
+
+        ## If we're not appending, add a header row:
+        if format == 'tsv' and not append:
+            outfile.write('\t'.join(ForzaDataPacket.get_props()))
+            outfile.write('\n')
+                
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         server_socket.bind(('', port))
 
@@ -53,7 +87,11 @@ def dump_stream(port, output_filename):
             fdp = ForzaDataPacket(message)
 
             if fdp.is_race_on:
-                outfile.write('{}\n'.format(fdp.to_tsv()))
+                if format == 'csv':
+                    csv_writer.writerow(fdp.to_list())
+                else:
+                    outfile.write('\t'.join([to_str(v) for v in fdp.to_list()]))
+                    outfile.write('\n')
 
 def main():
     import argparse
@@ -66,6 +104,13 @@ def main():
     cli_parser.add_argument('-v', '--verbose', action='store_true',
                             help='write informational output')
 
+    cli_parser.add_argument('-a', '--append', action='store_true',
+                            default=False, help='if set, data will be appended to the given file')
+
+    cli_parser.add_argument('-f', '--format', type=str, default='tsv',
+                            choices=['tsv', 'csv'],
+                            help='what format to write out, "tsv" means tab-separated, "csv" comma-separated; default is "tsv"')
+
     cli_parser.add_argument('port', type=int,
                             help='port number to listen on')
 
@@ -77,7 +122,7 @@ def main():
     if args.verbose:
         logging.basicConfig(level=logging.INFO)
 
-    dump_stream(args.port, args.output_filename)
+    dump_stream(args.port, args.output_filename, args.format, args.append)
 
     return()
 
