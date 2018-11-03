@@ -2,7 +2,7 @@
 Various utilities to work with data from the Forza Motorsport game's data stream.
 
 ## fdp.py
-A Python class containing all properties available in the data packets sent by the game's "data out" stream.
+A Python class containing all properties available in the data packets sent by the game's "data out" stream. This class supports packets for both the original "sled" format and the newer "dash cam" format.
 
 ## data2file.py
 A script that will listen on a given port on the local machine and write any incoming packets to a given output file whenever the game is in a "race" state. The script runs until it is interrupted (e.g. by the Ctrl-C keyboard combination).
@@ -38,3 +38,19 @@ python data2file.py -a 1123 forza_data.tsv
 ```
 
 When appending, the header row is not written out as it is expected to already be present in the file.
+
+### Write output in the older "sled" format
+
+By default the script expects data packets to use the current "dash cam" format. However, we still support the first version of the data out feature, the so-called "sled" format. If you want to use that format, supply the `-p` parameter to the script with a value of "sled", like this:
+
+```
+python data2file.py -p sled 1123 forza_data.tsv
+```
+
+### Command line help
+
+If you want to know what command line parameters you can use with the script, start it with `-h`. The script will then output some helpful information and how it works.
+
+### Contributions are welcome
+
+If you know Python and wish to contribute code, please don't hesitate to submit a pull request! There are always ways to improve, be it adding features or fixing bugs.

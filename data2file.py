@@ -43,7 +43,8 @@ def to_str(value):
     
     return('{}'.format(value))
 
-def dump_stream(port, output_filename, format='tsv', append=False):
+def dump_stream(port, output_filename, format='tsv', append=False,
+                packet_format='dash'):
     '''
     Opens the given output filename, listens to UDP packets on the given port
     and writes data to the file.
@@ -60,6 +61,10 @@ def dump_stream(port, output_filename, format='tsv', append=False):
     :param append: if set, the output file will be opened for appending and
                    the header with column names is not written out
     :type append: bool
+
+    :param packet_format: the packet format sent by the game, one of either
+                          'sled' or 'dash'
+    :type packet_format str
     '''
 
     open_mode = 'w'
@@ -70,11 +75,13 @@ def dump_stream(port, output_filename, format='tsv', append=False):
         if format == 'csv':
             csv_writer = csv.writer(outfile)
             if not append:
-                csv_writer.writerow(ForzaDataPacket.get_props())
+                csv_writer.writerow(
+                    ForzaDataPacket.get_props(packet_format = packet_format))
 
         ## If we're not appending, add a header row:
         if format == 'tsv' and not append:
-            outfile.write('\t'.join(ForzaDataPacket.get_props()))
+            outfile.write('\t'.join(
+                ForzaDataPacket.get_props(packet_format = packet_format)))
             outfile.write('\n')
                 
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -84,7 +91,7 @@ def dump_stream(port, output_filename, format='tsv', append=False):
 
         while True:
             message, address = server_socket.recvfrom(1024)
-            fdp = ForzaDataPacket(message)
+            fdp = ForzaDataPacket(message, packet_format = packet_format)
 
             if fdp.is_race_on:
                 if format == 'csv':
@@ -111,6 +118,10 @@ def main():
                             choices=['tsv', 'csv'],
                             help='what format to write out, "tsv" means tab-separated, "csv" comma-separated; default is "tsv"')
 
+    cli_parser.add_argument('-p', '--packet_format', type=str, default='dash',
+                            choices=['sled', 'dash'],
+                            help='what format the packets coming from the game is, either "sled" or "dash"')
+
     cli_parser.add_argument('port', type=int,
                             help='port number to listen on')
 
@@ -122,7 +133,8 @@ def main():
     if args.verbose:
         logging.basicConfig(level=logging.INFO)
 
-    dump_stream(args.port, args.output_filename, args.format, args.append)
+    dump_stream(args.port, args.output_filename, args.format, args.append,
+                args.packet_format)
 
     return()
 

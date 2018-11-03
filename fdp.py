@@ -33,11 +33,15 @@ class ForzaDataPacket:
     ## Class variables are the specification of the format and the names of all
     ## the properties found in the data packet.
 
-    ## Format string that allows unpack to process the data bytestream:
-    forza_format = '<iIfffffffffffffffffffffffffffffffffffffffffffffffffffiiiii'
+    ## Format string that allows unpack to process the data bytestream
+    ## for the V1 format called 'sled'
+    sled_format = '<iIfffffffffffffffffffffffffffffffffffffffffffffffffffiiiii'
 
+    ## Format string for the V2 format called 'car dash'
+    dash_format = '<iIfffffffffffffffffffffffffffffffffffffffffffffffffffiiiiifffffffffffffffffHBBBBBBbbb'
+    
     ## Names of the properties in the order they're featured in the packet:
-    props = [
+    sled_props = [
         'is_race_on', 'timestamp_ms',
         'engine_max_rpm', 'engine_idle_rpm', 'current_engine_rpm',
         'acceleration_x', 'acceleration_y', 'acceleration_z',
@@ -65,32 +69,73 @@ class ForzaDataPacket:
         'car_ordinal', 'car_class', 'car_performance_index',
         'drivetrain_type', 'num_cylinders'
     ]
+
+    ## The additional props added in the 'car dash' format
+    dash_props = ['position_x', 'position_y', 'position_z',
+                  'speed', 'power', 'torque',
+                  'tire_temp_FL', 'tire_temp_FR',
+                  'tire_temp_RL', 'tire_temp_RR',
+                  'boost', 'fuel', 'dist_traveled',
+                  'best_lap', 'last_lap',
+                  'cur_lap', 'cur_race_time',
+                  'lap_no', 'race_pos',
+                  'accel', 'brake', 'clutch', 'handbrake',
+                  'gear', 'steer',
+                  'norm_driving_line', 'norm_ai_brake_diff']
     
-    def __init__(self, data):
+    def __init__(self, data, packet_format='dash'):
+        ## The format this data packet was created with:
+        self.packet_format = packet_format
+        
         ## zip makes for convenient flexibility when mapping names to
         ## values in the data packet:
-        for prop_name, prop_value in zip(self.props,
-                                         unpack(self.forza_format, data)):
-            setattr(self, prop_name, prop_value)
+        if packet_format == 'sled':
+            for prop_name, prop_value in zip(self.sled_props,
+                                             unpack(self.sled_format, data)):
+                setattr(self, prop_name, prop_value)
+        else:
+            for prop_name, prop_value in zip(self.sled_props + self.dash_props,
+                                             unpack(self.dash_format, data)):
+                setattr(self, prop_name, prop_value)
 
     @classmethod
-    def get_props(cls):
+    def get_props(cls, packet_format = 'dash'):
         '''
         Return the list of properties in the data packet, in order.
+
+        :param packet_format: which packet format to get properties for,
+                              one of either 'sled' or 'dash'
+        :type packet_format: str
         '''
-        return(cls.props)
+        if packet_format == 'sled':
+            return(cls.sled_props)
+
+        return(cls.sled_props + cls.dash_props)
 
     def to_list(self):
         '''
         Return the values of this data packet, in order.
         '''
-        return([getattr(self, prop_name) for prop_name in self.props])
+        if self.packet_format == 'sled':
+            return([getattr(self, prop_name) for prop_name in self.sled_props])
+
+        return([getattr(self, prop_name) for prop_name in \
+                self.sled_props + self.dash_props])
+
+    def get_format(self):
+        '''
+        Return the format this packet was sent with.
+        '''
+        return(self.packet_format)
             
     def get_tsv_header(self):
         '''
         Return a tab-separated string with the names of all properties in the order defined in the data packet.
         '''
-        return('\t'.join(self.props))
+        if self.packet_format == 'sled':
+            return('\t'.join(self.sled_props))
+
+        return('\t'.join(self.sled_props + self.dash_props))
         
     def to_tsv(self):
         '''
@@ -98,4 +143,7 @@ class ForzaDataPacket:
         All floating point numbers are defined as such to allow for changing
         the number of significant digits if desired.
         '''
-        return('{0.is_race_on}\t{0.timestamp_ms}\t{0.engine_max_rpm:f}\t{0.engine_idle_rpm:f}\t{0.current_engine_rpm:f}\t{0.acceleration_x:f}\t{0.acceleration_y:f}\t{0.acceleration_z:f}\t{0.velocity_x:f}\t{0.velocity_y:f}\t{0.velocity_z:f}\t{0.angular_velocity_x:f}\t{0.angular_velocity_y:f}\t{0.angular_velocity_z:f}\t{0.yaw:f}\t{0.pitch:f}\t{0.roll:f}\t{0.norm_suspension_travel_FL:f}\t{0.norm_suspension_travel_FR:f}\t{0.norm_suspension_travel_RL:f}\t{0.norm_suspension_travel_RR:f}\t{0.tire_slip_ratio_FL:f}\t{0.tire_slip_ratio_FR:f}\t{0.tire_slip_ratio_RL:f}\t{0.tire_slip_ratio_RR:f}\t{0.wheel_rotation_speed_FL:f}\t{0.wheel_rotation_speed_FR:f}\t{0.wheel_rotation_speed_RL:f}\t{0.wheel_rotation_speed_RR:f}\t{0.wheel_on_rumble_strip_FL:f}\t{0.wheel_on_rumble_strip_FR:f}\t{0.wheel_on_rumble_strip_RL:f}\t{0.wheel_on_rumble_strip_RR:f}\t{0.wheel_in_puddle_FL:f}\t{0.wheel_in_puddle_FR:f}\t{0.wheel_in_puddle_RL:f}\t{0.wheel_in_puddle_RR:f}\t{0.surface_rumble_FL:f}\t{0.surface_rumble_FR:f}\t{0.surface_rumble_RL:f}\t{0.surface_rumble_RR:f}\t{0.tire_slip_angle_FL:f}\t{0.tire_slip_angle_FR:f}\t{0.tire_slip_angle_RL:f}\t{0.tire_slip_angle_RR:f}\t{0.tire_combined_slip_FL:f}\t{0.tire_combined_slip_FR:f}\t{0.tire_combined_slip_RL:f}\t{0.tire_combined_slip_RR:f}\t{0.suspension_travel_meters_FL:f}\t{0.suspension_travel_meters_FR:f}\t{0.suspension_travel_meters_RL:f}\t{0.suspension_travel_meters_RR:f}\t{0.car_ordinal}\t{0.car_class}\t{0.car_performance_index}\t{0.drivetrain_type}\t{0.num_cylinders}'.format(self))
+        if self.packet_format == 'sled':
+            return('{0.is_race_on}\t{0.timestamp_ms}\t{0.engine_max_rpm:f}\t{0.engine_idle_rpm:f}\t{0.current_engine_rpm:f}\t{0.acceleration_x:f}\t{0.acceleration_y:f}\t{0.acceleration_z:f}\t{0.velocity_x:f}\t{0.velocity_y:f}\t{0.velocity_z:f}\t{0.angular_velocity_x:f}\t{0.angular_velocity_y:f}\t{0.angular_velocity_z:f}\t{0.yaw:f}\t{0.pitch:f}\t{0.roll:f}\t{0.norm_suspension_travel_FL:f}\t{0.norm_suspension_travel_FR:f}\t{0.norm_suspension_travel_RL:f}\t{0.norm_suspension_travel_RR:f}\t{0.tire_slip_ratio_FL:f}\t{0.tire_slip_ratio_FR:f}\t{0.tire_slip_ratio_RL:f}\t{0.tire_slip_ratio_RR:f}\t{0.wheel_rotation_speed_FL:f}\t{0.wheel_rotation_speed_FR:f}\t{0.wheel_rotation_speed_RL:f}\t{0.wheel_rotation_speed_RR:f}\t{0.wheel_on_rumble_strip_FL:f}\t{0.wheel_on_rumble_strip_FR:f}\t{0.wheel_on_rumble_strip_RL:f}\t{0.wheel_on_rumble_strip_RR:f}\t{0.wheel_in_puddle_FL:f}\t{0.wheel_in_puddle_FR:f}\t{0.wheel_in_puddle_RL:f}\t{0.wheel_in_puddle_RR:f}\t{0.surface_rumble_FL:f}\t{0.surface_rumble_FR:f}\t{0.surface_rumble_RL:f}\t{0.surface_rumble_RR:f}\t{0.tire_slip_angle_FL:f}\t{0.tire_slip_angle_FR:f}\t{0.tire_slip_angle_RL:f}\t{0.tire_slip_angle_RR:f}\t{0.tire_combined_slip_FL:f}\t{0.tire_combined_slip_FR:f}\t{0.tire_combined_slip_RL:f}\t{0.tire_combined_slip_RR:f}\t{0.suspension_travel_meters_FL:f}\t{0.suspension_travel_meters_FR:f}\t{0.suspension_travel_meters_RL:f}\t{0.suspension_travel_meters_RR:f}\t{0.car_ordinal}\t{0.car_class}\t{0.car_performance_index}\t{0.drivetrain_type}\t{0.num_cylinders}'.format(self))
+
+        return('{0.is_race_on}\t{0.timestamp_ms}\t{0.engine_max_rpm:f}\t{0.engine_idle_rpm:f}\t{0.current_engine_rpm:f}\t{0.acceleration_x:f}\t{0.acceleration_y:f}\t{0.acceleration_z:f}\t{0.velocity_x:f}\t{0.velocity_y:f}\t{0.velocity_z:f}\t{0.angular_velocity_x:f}\t{0.angular_velocity_y:f}\t{0.angular_velocity_z:f}\t{0.yaw:f}\t{0.pitch:f}\t{0.roll:f}\t{0.norm_suspension_travel_FL:f}\t{0.norm_suspension_travel_FR:f}\t{0.norm_suspension_travel_RL:f}\t{0.norm_suspension_travel_RR:f}\t{0.tire_slip_ratio_FL:f}\t{0.tire_slip_ratio_FR:f}\t{0.tire_slip_ratio_RL:f}\t{0.tire_slip_ratio_RR:f}\t{0.wheel_rotation_speed_FL:f}\t{0.wheel_rotation_speed_FR:f}\t{0.wheel_rotation_speed_RL:f}\t{0.wheel_rotation_speed_RR:f}\t{0.wheel_on_rumble_strip_FL:f}\t{0.wheel_on_rumble_strip_FR:f}\t{0.wheel_on_rumble_strip_RL:f}\t{0.wheel_on_rumble_strip_RR:f}\t{0.wheel_in_puddle_FL:f}\t{0.wheel_in_puddle_FR:f}\t{0.wheel_in_puddle_RL:f}\t{0.wheel_in_puddle_RR:f}\t{0.surface_rumble_FL:f}\t{0.surface_rumble_FR:f}\t{0.surface_rumble_RL:f}\t{0.surface_rumble_RR:f}\t{0.tire_slip_angle_FL:f}\t{0.tire_slip_angle_FR:f}\t{0.tire_slip_angle_RL:f}\t{0.tire_slip_angle_RR:f}\t{0.tire_combined_slip_FL:f}\t{0.tire_combined_slip_FR:f}\t{0.tire_combined_slip_RL:f}\t{0.tire_combined_slip_RR:f}\t{0.suspension_travel_meters_FL:f}\t{0.suspension_travel_meters_FR:f}\t{0.suspension_travel_meters_RL:f}\t{0.suspension_travel_meters_RR:f}\t{0.car_ordinal}\t{0.car_class}\t{0.car_performance_index}\t{0.drivetrain_type}\t{0.num_cylinders}\t{0.position_x}\t{0.position_y}\t{0.position_z}\t{0.speed}\t{0.power}\t{0.torque}\t{0.tire_temp_FL}\t{0.tire_temp_FR}\t{0.tire_temp_RL}\t{0.tire_temp_RR}\t{0.boost}\t{0.fuel}\t{0.dist_traveled}\t{0.best_lap}\t{0.last_lap}\t{0.cur_lap}\t{0.cur_race_time}\t{0.lap_no}\t{0.race_pos}\t{0.accel}\t{0.brake}\t{0.clutch}\t{0.handbrake}\t{0.gear}\t{0.steer}\t{0.norm_driving_line}\t{0.norm_ai_brake_diff}'.format(self))
