@@ -76,8 +76,8 @@ class ForzaDataPacket:
                   'tire_temp_FL', 'tire_temp_FR',
                   'tire_temp_RL', 'tire_temp_RR',
                   'boost', 'fuel', 'dist_traveled',
-                  'best_lap', 'last_lap',
-                  'cur_lap', 'cur_race_time',
+                  'best_lap_time', 'last_lap_time',
+                  'cur_lap_time', 'cur_race_time',
                   'lap_no', 'race_pos',
                   'accel', 'brake', 'clutch', 'handbrake',
                   'gear', 'steer',
@@ -112,10 +112,17 @@ class ForzaDataPacket:
 
         return(cls.sled_props + cls.dash_props)
 
-    def to_list(self):
+    def to_list(self, attributes):
         '''
-        Return the values of this data packet, in order.
+        Return the values of this data packet, in order. If a list of 
+        attributes are provided, only return those.
+
+        :param attributes: the attributes to return
+        :type attributes: list
         '''
+        if attributes:
+            return([getattr(self, a) for a in attributes])
+        
         if self.packet_format == 'sled':
             return([getattr(self, prop_name) for prop_name in self.sled_props])
 

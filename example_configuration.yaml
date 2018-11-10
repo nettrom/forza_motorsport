@@ -1,0 +1,11 @@
+port: 1123
+output_filename: forza_data.csv
+format: csv
+append: False
+packet_format: dash
+parameter_list:
+  - wall_clock
+  - timestamp_ms
+  - lap_no
+  - cur_lap_time
+  - cur_race_time
