@@ -10,15 +10,15 @@ In the case of `data2file.py`, the configuration file will consist of either lin
 The configuration file can override all the command line options. They are as follows:
 
 * `port`: The port number of listen on. Needs to be a number, typically larger than 1024.
-** Example: `port: 1123`
+  * Example: `port: 1123`
 * `output_filename`: The name of the file to write the logged data to.
-** Example: `output_filename: forza_data.tsv`
+  * Example: `output_filename: forza_data.tsv`
 * `format`: The format of the output file, one of either `tsv` (tab-separated values) or `csv` (comma-separated values).
-** Example: `format: tsv`
+  * Example: `format: tsv`
 * `append`: Whether the data should be appended to the output file, or if the file should be created/overwritten. The value should be either `True` or `False`, respectively.
-** Example: `append: False`
+  * Example: `append: False`
 * `packet_format`: The format of the data packets. Either `sled`, the older format, or `dash`, the newer format.
-** Example: `packet_format: dash`
+  * Example: `packet_format: dash`
 
 The example configuration file sets all of these options and can be used as a starting point for creating your own configuration file.
 
