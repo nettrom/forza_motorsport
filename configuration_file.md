@@ -31,7 +31,8 @@ In the configuration file the parameter list is its own option, so the first lin
 parameter_list:
   - lap_no
   - cur_lap_time
-  - cur_race_time```
+  - cur_race_time
+```
 
 This configuration logs only the current lap number, the current lap time, and the current race time.
 
