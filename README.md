@@ -47,6 +47,16 @@ By default the script expects data packets to use the current "dash cam" format.
 python data2file.py -p sled 1123 forza_data.tsv
 ```
 
+### Specify a configuration file
+
+The utility script can read in a YAML configuration file, which allows you to specify what data you want logged, rather than have it log all available data. If you want to use a configuration file, supply the `-c` parameter to the script, with a value of the name of the configuration file, for example:
+
+```
+python data2file.py -c example_configuration.yaml 1123 forza_data.tsv
+```
+
+For more information about the configuration file format and the possible options, see the [configuration file documentation](configuration_file.md).
+
 ### Command line help
 
 If you want to know what command line parameters you can use with the script, start it with `-h`. The script will then output some helpful information and how it works.
