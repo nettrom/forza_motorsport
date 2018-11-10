@@ -15,7 +15,7 @@ The configuration file can override all the command line options. They are as fo
 ** Example: `output_filename: forza_data.tsv`
 * `format`: The format of the output file, one of either `tsv` (tab-separated values) or `csv` (comma-separated values).
 ** Example: `format: tsv`
-* 'append': Whether the data should be appended to the output file, or if the file should be created/overwritten. The value should be either `True` or `False`, respectively.
+* `append`: Whether the data should be appended to the output file, or if the file should be created/overwritten. The value should be either `True` or `False`, respectively.
 ** Example: `append: False`
 * `packet_format`: The format of the data packets. Either `sled`, the older format, or `dash`, the newer format.
 ** Example: `packet_format: dash`
