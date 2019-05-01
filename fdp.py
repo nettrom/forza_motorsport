@@ -93,6 +93,12 @@ class ForzaDataPacket:
             for prop_name, prop_value in zip(self.sled_props,
                                              unpack(self.sled_format, data)):
                 setattr(self, prop_name, prop_value)
+        elif packet_format == 'fh4':
+            patched_data = data[:232] + data[244:323]
+            for prop_name, prop_value in zip(self.sled_props + self.dash_props,
+                                             unpack(self.dash_format,
+                                                    patched_data)):
+                setattr(self, prop_name, prop_value)
         else:
             for prop_name, prop_value in zip(self.sled_props + self.dash_props,
                                              unpack(self.dash_format, data)):

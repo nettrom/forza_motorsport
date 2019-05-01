@@ -168,7 +168,7 @@ def main():
                             help='what format to write out, "tsv" means tab-separated, "csv" comma-separated; default is "tsv"')
 
     cli_parser.add_argument('-p', '--packet_format', type=str, default='dash',
-                            choices=['sled', 'dash'],
+                            choices=['sled', 'dash', 'fh4'],
                             help='what format the packets coming from the game is, either "sled" or "dash"')
 
     cli_parser.add_argument('-c', '--config_file', type=str,
