@@ -169,7 +169,7 @@ def main():
 
     cli_parser.add_argument('-p', '--packet_format', type=str, default='dash',
                             choices=['sled', 'dash', 'fh4'],
-                            help='what format the packets coming from the game is, either "sled" or "dash"')
+                            help='what format the packets coming from the game is, either "sled", "dash", or "fh4"')
 
     cli_parser.add_argument('-c', '--config_file', type=str,
                             help='path to the YAML configuration file')
